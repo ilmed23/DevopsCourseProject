@@ -37,3 +37,7 @@ variable "subnet2_cidr" {
 variable "subnet3_cidr" {
   description = "Private CIDR block for subnet 3"
 }
+
+variable "domain_name" {
+  description = "Domain name for private hosted zone"
+}

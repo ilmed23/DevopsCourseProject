@@ -153,4 +153,10 @@ resource "aws_iam_role_policy_attachment" "policy-attach" {
   policy_arn = "${aws_iam_policy.project_iam_policy.arn}"
 }
 #---------------------------- ROUTE 53 ----------------------------------------------------------------
+resource "aws_route53_zone" "project_hosted_zone" {
+  name = "${var.domain_name}"
+  vpc {
+    vpc_id = "${aws_vpc.project_vpc.id}"
+  }
+}
 #--------------------------- AUTOSCALING GROUPS -------------------------------------------------------
