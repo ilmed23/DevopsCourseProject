@@ -99,7 +99,7 @@ function UpdateDNS()
         GetOwnTag "Name"
         MyHostName=${TagVal}
 
-        aws route53 change-resource-record-sets --hosted-zone-id "${HostedZoneId}" --change-batch '{"Changes": [{"Action": "UPSERT","ResourceRecordSet": {"Name": "'"${MyHostName}.${DomainName}"'","Type": "A","TTL": 60,"ResourceRecords": [{"Value": "'"${MyInstanceIP}"'"}]}}]}'
+        aws route53 change-resource-record-sets --hosted-zone-id ${HostedZoneId} --change-batch '{"Changes": [{"Action": "UPSERT","ResourceRecordSet": {"Name": "'"${MyHostName}.${DomainName}"'","Type": "A","TTL": 60,"ResourceRecords": [{"Value": "'"${MyInstanceIP}"'"}]}}]}'
 
 }
 
@@ -172,15 +172,6 @@ do
         arrManNodesLength=${#arrManagerNodes[@]}
 done
 
-# If no manager nodes wait 5 minutes for creation of nodes
-: 'if [[ $arrManNodesLength < 1 ]]
-then
-
-        sleep 5m
-        GetManagers
-        arrManNodesLength=${#arrManagerNodes[@]}
-fi'
-
 if [[ $arrManNodesLength < 1 ]]
 then
         echo "ERROR: No manager nodes after 5 minutes"
@@ -196,7 +187,7 @@ else
                 manIP=$(echo $nd | awk -F ';' '{print $3}')
 
                 GetWorkerToken $manID
-                docker swarm join --token $WorkerToken ${manIP}:2377
+                sudo docker swarm join --token $WorkerToken ${manIP}:2377
         done
 fi
 

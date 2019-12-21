@@ -68,7 +68,7 @@ function UpdateDNS()
         MyHostName=${TagVal}
         echo ${DomainName}
 
-        aws route53 change-resource-record-sets --hosted-zone-id "${HostedZoneId}" --change-batch '{"Changes": [{"Action": "UPSERT","ResourceRecordSet": {"Name": "'"${MyHostName}.${DomainName}"'","Type": "A","TTL": 60,"ResourceRecords": [{"Value": "'"${MyInstanceIP}"'"}]}}]}'
+        aws route53 change-resource-record-sets --hosted-zone-id ${HostedZoneId} --change-batch '{"Changes": [{"Action": "UPSERT","ResourceRecordSet": {"Name": "'"${MyHostName}.${DomainName}"'","Type": "A","TTL": 60,"ResourceRecords": [{"Value": "'"${MyInstanceIP}"'"}]}}]}'
 
 }
 
@@ -143,10 +143,10 @@ then
         # Set Name tag
         SetTagOnInstance "Name" "SwarmManager1"
 
-        docker swarm leave --force
-        docker swarm init --advertise-addr $MyInstanceIP
-        ManagerToken=$(docker swarm join-token manager -q)
-        WorkerToken=$(docker swarm join-token worker -q)
+        sudo ocker swarm leave --force
+        sudo docker swarm init --advertise-addr $MyInstanceIP
+        ManagerToken=$(sudo docker swarm join-token manager -q)
+        WorkerToken=$(sudo docker swarm join-token worker -q)
         SetTagOnInstance "ManagerToken" $ManagerToken
         SetTagOnInstance "WorkerToken" $WorkerToken
 # If other nodes exist we have to:
@@ -166,10 +166,10 @@ else
                 {
                         echo ${ndInstIp}:2377
                         # Join swarm
-                        docker swarm join --token $ManagerToken ${ndInstIp}:2377
+                        sudo docker swarm join --token $ManagerToken ${ndInstIp}:2377
 
-                        ManagerToken=$(docker swarm join-token manager -q)
-                        WorkerToken=$(docker swarm join-token worker -q)
+                        ManagerToken=$(sudo docker swarm join-token manager -q)
+                        WorkerToken=$(sudo docker swarm join-token worker -q)
 
                         # Set identifying tags (PartOf and InstanceRole)
                         SetTagOnInstance "PartOf" "FinalProject"
