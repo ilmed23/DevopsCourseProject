@@ -15,7 +15,9 @@ function SetTagOnInstance()
 # Get Other managers by instancerole tag and partof tag. returns array of nodes
 function GetManagers()
 {
-        # Waits 10 seconds - in order to minize chance of collision (several nodes created at the same time by ASG, some claiming to be the first ones)
+        # Waits random number of  seconds - in order to minize chance of collision (several nodes created at the same time by ASG, some claiming to be the first ones)
+        sleep  $[ ($RANDOM) % 100 ]s
+
         ManagerNodes=$(aws \
                        --output text --region $region ec2 describe-instances \
                        --filters Name=tag-key,Values=PartOf Name=tag-value,Values=FinalProject \
@@ -122,13 +124,13 @@ GetManagers
 arrNodesLength=${#arrManagerNodes[@]}
 
 # If no other nodes wait a random period of time to avoid collision
-if [[ $arrNodesLength < 1 ]]
+: 'if [[ $arrNodesLength < 1 ]]
 then
 
         sleep  $[ ( $RANDOM % 10 )  + 20 ]s
         GetManagers
         arrNodesLength=${#arrManagerNodes[@]}
-fi
+fi'
 
 # If there are no other manager nodes, the cluster will be initiated by this node and it will be given the name SwarmManager1
 if [[ $arrNodesLength <  1 ]]

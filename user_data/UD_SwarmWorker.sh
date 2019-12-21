@@ -42,6 +42,8 @@ function GetManagers()
 
 function GetWorkers()
 {
+        sleep  $[ ($RANDOM) % 100 ]s
+
         WorkerNodes=$(aws \
                        --output text --region $region ec2 describe-instances \
                        --filters Name=tag-key,Values=PartOf Name=tag-value,Values=FinalProject \
@@ -105,9 +107,6 @@ function UpdateDNS()
 
 function SetCurrInstName()
 {
-        # Random wait to avoid collisions
-        sleep  $[ ( $RANDOM % 10 )  + 5 ]s
-
         #Determine this nodes name, use the lowest free index (i.e if swarmmanager1 was terminated, the next node created by
         #the autoscaling group will be named SwarmManager1, and so on)
         InitNodeName=$(echo "${arrWorkerNodes[0]}" | awk -F ';' '{print $2}')
@@ -174,7 +173,7 @@ done
 
 if [[ $arrManNodesLength < 1 ]]
 then
-        echo "ERROR: No manager nodes after 5 minutes"
+        echo "ERROR: No manager nodes after ${WaitTimeout} seconds, Exitting with error"
         exit 1
 else
         GetWorkers

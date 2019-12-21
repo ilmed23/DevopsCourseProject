@@ -41,3 +41,7 @@ variable "subnet3_cidr" {
 variable "domain_name" {
   description = "Domain name for private hosted zone"
 }
+
+variable "ec2_instance_type" {
+  description = "ec2 instance type (i.e t2.micro)"
+}

@@ -174,3 +174,58 @@ resource "aws_route53_zone" "project_hosted_zone" {
   }
 }
 #--------------------------- AUTOSCALING GROUPS -------------------------------------------------------
+
+#Launch configurations for swarm manager and swarm worker
+resource "aws_launch_configuration" "Proj_LC_SwarmManager" {
+  name =          "Proj_LC_SwarmManager" 
+  image_id      = "${var.aws_ami}"
+  instance_type = "${var.ec2_instance_type}"
+  iam_instance_profile = "${aws_iam_instance_profile.project_profile.name}"
+  key_name = "FinalProject" # TODO: Add key from terraform
+  security_groups = ["${aws_security_group.project_security_group.id}"]
+  user_data= file("${path.module}/../user_data/UD_SwarmManager.sh")
+}
+
+  
+resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
+  name =          "Proj_LC_SwarmWorker" 
+  image_id      = "${var.aws_ami}"
+  instance_type = "${var.ec2_instance_type}"
+  iam_instance_profile = "${aws_iam_instance_profile.project_profile.name}"
+  key_name = "FinalProject" # TODO: Add key from terraform
+  security_groups = ["${aws_security_group.project_security_group.id}"]
+  user_data= file("${path.module}/../user_data/UD_SwarmWorker.sh")
+}
+  # AutoScaling groups
+  resource "aws_autoscaling_group" "Proj_ASG_SwarmManagers" {
+  name                 = "Proj_ASG_SwarmManagers"
+  max_size             = 0
+  min_size             = 0
+  launch_configuration = "${aws_launch_configuration.Proj_LC_SwarmManager.name}"
+  vpc_zone_identifier  = ["${aws_subnet.subnet1.id}", "${aws_subnet.subnet2.id}", "${aws_subnet.subnet3.id}"]
+
+  tags = [
+    {
+      key                 = "DomainName"
+      value               = "${var.domain_name}"
+      propagate_at_launch = true
+    }
+  ]
+}
+
+  # AutoScaling groups
+  resource "aws_autoscaling_group" "Proj_ASG_SwarmWorkers" {
+  name                 = "Proj_ASG_SwarmWorkers"
+  max_size             = 0
+  min_size             = 0
+  launch_configuration = "${aws_launch_configuration.Proj_LC_SwarmWorker.name}"
+  vpc_zone_identifier  = ["${aws_subnet.subnet1.id}", "${aws_subnet.subnet2.id}", "${aws_subnet.subnet3.id}"]
+
+  tags = [
+    {
+      key                 = "DomainName"
+      value               = "${var.domain_name}"
+      propagate_at_launch = true
+    }
+  ]
+}
