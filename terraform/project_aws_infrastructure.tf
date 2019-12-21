@@ -112,6 +112,13 @@ resource "aws_security_group" "project_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Allow all outbound traffic 
   egress {
     from_port       = 0
@@ -152,6 +159,13 @@ resource "aws_iam_role_policy_attachment" "policy-attach" {
   role       = "${aws_iam_role.project_iam_role.name}"
   policy_arn = "${aws_iam_policy.project_iam_policy.arn}"
 }
+
+# An instance profile is required to add the role to ec2 instances
+resource "aws_iam_instance_profile" "project_profile" {
+  name = "project_iam_role"
+  role = "${aws_iam_role.project_iam_role.name}"
+}
+
 #---------------------------- ROUTE 53 ----------------------------------------------------------------
 resource "aws_route53_zone" "project_hosted_zone" {
   name = "${var.domain_name}"

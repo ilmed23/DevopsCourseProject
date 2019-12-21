@@ -156,14 +156,30 @@ GetManagers
 
 arrManNodesLength=${#arrManagerNodes[@]}
 
+# If no managers exist the script will wait maximum of 600 seconds
+WaitTimeout=600
+TimeWaited=0
+WaitSecs=30
+
+echo $TimeWaited
+
+while [[ $arrManNodesLength  -lt 1 && $TimeWaited -lt $WaitTimeout   ]]
+do
+        echo "No managers available yet, waiting ${WaitSecs} seconds. ${TimeWaited} waited so far"
+        sleep ${WaitSecs}s
+        TimeWaited=$(expr ${TimeWaited} + ${WaitSecs}) 
+        GetManagers
+        arrManNodesLength=${#arrManagerNodes[@]}
+done
+
 # If no manager nodes wait 5 minutes for creation of nodes
-if [[ $arrManNodesLength < 1 ]]
+: 'if [[ $arrManNodesLength < 1 ]]
 then
 
         sleep 5m
         GetManagers
         arrManNodesLength=${#arrManagerNodes[@]}
-fi
+fi'
 
 if [[ $arrManNodesLength < 1 ]]
 then
