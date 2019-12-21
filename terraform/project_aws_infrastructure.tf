@@ -213,7 +213,6 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
   ]
 }
 
-  # AutoScaling groups
   resource "aws_autoscaling_group" "Proj_ASG_SwarmWorkers" {
   name                 = "Proj_ASG_SwarmWorkers"
   max_size             = 0
