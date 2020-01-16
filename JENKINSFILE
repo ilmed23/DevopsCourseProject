@@ -1,0 +1,45 @@
+pipeline 
+{
+    agent any
+    
+    stages
+    {
+        stage('Git Clone')
+        {
+            steps
+            {
+                git 'https://github.com/ilmed23/DevopsCourseProject.git'
+            }
+        }
+        stage ('Preparations')
+        {
+            steps
+            {
+                echo 'Creating keypair for instances'
+                sh '''  ssh-keygen -q -t rsa -N '' -f ~/.ssh/ssh-key 2>/dev/null <<< y >/dev/null
+                chmod 400 ${PWD}/ssh_key
+                '''
+            }
+        }
+        
+        stage ('Terraform')
+        {
+            steps
+            {
+                withCredentials([usernamePassword(credentialsId: 'AWS_CREDENTIALS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET')]) 
+                {
+                   sh "terraform init ./terraform"
+                   sh "terraform plan -var aws_access_key_id=${AWS_ACCESS_KEY_ID} -var aws_secret_access_key=${AWS_SECRET} -var ssh_public_key_path=./ssh_key.pub -var-file=./terraform/terraform.tfvars -out tfplan  ./terraform"
+                   sh "terraform apply -input=false tfplan"
+                }
+            }
+        }
+        stage('Wait for infrastructue')
+        {
+            steps
+            {
+                sh "./WaitForInfrastructure.sh"
+            }
+        }
+    }
+}
