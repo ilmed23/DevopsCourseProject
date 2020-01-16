@@ -7,6 +7,7 @@ function GetProjectNodes()
     AllProjectNodes=$(aws \
                       --output text --region $region ec2 describe-instances \
                       --filters Name=tag-key,Values=PartOf Name=tag-value,Values=FinalProject \
+                        Name=instance-state-name,Values=running,pending \
                       --query 'Reservations[*].Instances[*].{A:InstanceId}')
 }
 
