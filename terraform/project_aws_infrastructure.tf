@@ -201,7 +201,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
   security_groups = ["${aws_security_group.project_security_group.id}"]
   user_data= file("${path.module}/../user_data/UD_SwarmWorker.sh")
 }
-  # AutoScaling groups
+  # AutoScaling groups - instances are created with name set to INITIALIZING, once swarm is initialized the user data will change it
   resource "aws_autoscaling_group" "Proj_ASG_SwarmManagers" {
   name                 = "Proj_ASG_SwarmManagers"
   max_size             = 2
@@ -213,6 +213,16 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
     {
       key                 = "DomainName"
       value               = "${var.domain_name}"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "PartOf"
+      value               = "FinalProject"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "Name"
+      value               = "INITIALIZING"
       propagate_at_launch = true
     }
   ]
@@ -229,6 +239,16 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
     {
       key                 = "DomainName"
       value               = "${var.domain_name}"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "PartOf"
+      value               = "FinalProject"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "Name"
+      value               = "INITIALIZING"
       propagate_at_launch = true
     }
   ]
