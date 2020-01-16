@@ -45,3 +45,7 @@ variable "domain_name" {
 variable "ec2_instance_type" {
   description = "ec2 instance type (i.e t2.micro)"
 }
+
+variable "ssh_public_key_path" {
+  description = "Public key to be used for ec2 keypair"
+}
