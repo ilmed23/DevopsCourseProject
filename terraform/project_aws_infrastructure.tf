@@ -169,6 +169,7 @@ resource "aws_iam_instance_profile" "project_profile" {
 #---------------------------- ROUTE 53 ----------------------------------------------------------------
 resource "aws_route53_zone" "project_hosted_zone" {
   name = "${var.domain_name}"
+  force_destroy=true
   vpc {
     vpc_id = "${aws_vpc.project_vpc.id}"
   }
