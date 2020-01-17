@@ -287,3 +287,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
 output "lb_address" {
  value = "${aws_lb.Proj_alb.dns_name}"
 }
+
+output "lb_listener_port" {
+ value = "${aws_lb_listener.Proj_listener.port}"
+}
