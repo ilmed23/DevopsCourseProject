@@ -2,6 +2,22 @@ pipeline
 {
     agent any
     
+    parameters 
+    {
+        booleanParam(name: 'DESTROY_FIRST', defaultValue: false, description: 'Run terraform destroy before apply?')
+        booleanParam(name: 'RECREATE_KAYPAIR', defaultValue: false, description: 'CAUTION: If the keaypair is recreated all ec2 instances will not be accessible - unless you kept a copy. If there is running infrastructure do not set this. The pipeline will fail. Set destroy first as well if you wish to recreate')
+    }
+    
+    environment
+    {
+        def AWS_CREDS=credentials('AWS_CREDENTIALS')
+        AWS_ACCESS_KEY_ID = "${AWS_CREDS_USR}"
+        AWS_SECRET_ACCESS_KEY = "${AWS_CREDS_PSW}"
+        SSH_KEY_FILE = "${env.WORKSPACE}/ssh_key"
+        /* Variables for ansible and ansible ec2 dynamic inventory*/
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
+        EC2_INI_FILE = "${env.WORKSPACE}/ansible/ec2.ini"
+    }
     stages
     {
         stage('Git Clone')
@@ -11,27 +27,49 @@ pipeline
                 git 'https://github.com/ilmed23/DevopsCourseProject.git'
             }
         }
-        stage ('Preparations')
+        stage ('Generate SSH Key')
         {
             steps
             {
-                echo 'Creating keypair for instances'
-                sh '''  ssh-keygen -q -t rsa -N '' -f ~/.ssh/ssh-key 2>/dev/null <<< y >/dev/null
-                chmod 400 ${PWD}/ssh_key
-                '''
+                script
+                {
+                    if (params.RECREATE_KAYPAIR)
+                    {
+                       sh '''  
+                            echo 'Creating keypair for instances'
+                            chmod 777 $SSH_KEY_FILE 2>/dev/null
+                            ssh-keygen -q -t rsa -N '' -f $SSH_KEY_FILE 2>/dev/null <<< y >/dev/null
+                            chmod 400 $SSH_KEY_FILE
+                          '''
+                    }
+                    else
+                    {
+                        sh '''
+                           test -f $SSH_KEY_FILE || ssh-keygen -q -t rsa -N '' -f $SSH_KEY_FILE
+                           chmod 400 $SSH_KEY_FILE
+                           '''
+                    }
+                }
+                
             }
         }
-        
         stage ('Terraform')
         {
             steps
             {
-                withCredentials([usernamePassword(credentialsId: 'AWS_CREDENTIALS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET')]) 
+                sh "terraform init ./terraform"
+                    
+                script 
                 {
-                   sh "terraform init ./terraform"
-                   sh "terraform plan -var aws_access_key_id=${AWS_ACCESS_KEY_ID} -var aws_secret_access_key=${AWS_SECRET} -var ssh_public_key_path=./ssh_key.pub -var-file=./terraform/terraform.tfvars -out tfplan  ./terraform"
-                   sh "terraform apply -input=false tfplan"
+                    if (params.DESTROY_FIRST)
+                    {
+                        sh "terraform destroy -force -var aws_access_key_id=${env.AWS_ACCESS_KEY_ID} -var aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} -var ssh_public_key_path=./ssh_key.pub -var-file=./terraform/terraform.tfvars ./terraform"
+                    }
                 }
+                    
+                sh "terraform plan -var aws_access_key_id=${env.AWS_ACCESS_KEY_ID} -var aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} -var ssh_public_key_path=./ssh_key.pub -var-file=./terraform/terraform.tfvars -out tfplan  ./terraform"
+                sh "terraform apply -input=false tfplan"
+                
             }
         }
         stage('Wait for infrastructue')
@@ -39,6 +77,52 @@ pipeline
             steps
             {
                 sh "./WaitForInfrastructure.sh"
+            }
+        }
+        
+        /*Using dynamic inventory for ec2. Requires python packages, hence will use virtualenv*/
+        stage ('Prepare ansible')
+        {
+            steps
+            {
+                sh '''
+                    virtualenv venvansible
+                    source ./venvansible/bin/activate
+                    pip install ansible boto boto3
+                    curl https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py > ec2.py
+                    chmod +x ec2.py
+                   ''' 
+            }
+        }
+        stage ('Run Ansible playbook')
+        {
+            steps
+            {
+                sh '''
+                   source ./venvansible/bin/activate
+                   ansible-playbook ./ansible/playbook.yaml -i ${PWD}/ec2.py --private-key $SSH_KEY_FILE
+                   '''
+            }
+        }
+        stage ('Nginx deployment to swarm')
+        {
+            steps
+            {
+                sh '''
+                   source ./venvansible/bin/activate
+                   ansible-playbook ./ansible/swarm_nginx_playbook.yaml -i ${PWD}/ec2.py --private-key $SSH_KEY_FILE
+                   '''
+            }
+        }
+        stage ('Test nginx and load balancer')
+        {
+            steps
+            {
+                sh '''
+                   terraform output lb_address
+                   terraform output lb_listener_port
+                   curl "http://$(terraform output lb_address):$(terraform output lb_listener_port)"
+                   '''
             }
         }
     }
