@@ -7,6 +7,8 @@
    tasks:
      - name: Install vim
        yum: name=vim state=latest
+     - name: Install git
+       yum: name=git state=latest
      - name: Install htop
        yum: name=htop state=latest
      - name: Install sysstat

@@ -1,0 +1,24 @@
+---
+ - name: Create swarmprom swarm stack
+   hosts: tag_InstanceRole_SwarmManager
+   remote_user: ec2-user
+   become: true
+
+   tasks:
+     - name: Check if stack already exists
+       command: docker stack services mon
+       register: stack_output
+       ignore_errors: yes
+ #    - debug: msg="{{ stack_output.stdout }}"
+     - name: delete swarm prom folder if exists
+       shell: rm -rf ./swarmprom 2>/dev/null
+       when: stack_output.stdout == ""
+       ignore_errors: yes
+     - name: clone swarmprom repository
+       command: git clone https://github.com/stefanprodan/swarmprom.git
+       when: stack_output.stdout == ""
+     - name: deploy stack swarmprom stack
+       shell: ADMIN_USER=admin ADMIN_PASSWORD=admin SLACK_URL=https://hooks.slack.com/services/TOKEN SLACK_CHANNEL=devops-alerts SLACK_USER=alertmanager docker stack deploy -c ./swarmprom/docker-compose.yml mon
+       when: stack_output.stdout == ""
+       run_once: true
+     
