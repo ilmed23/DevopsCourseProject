@@ -212,7 +212,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
 }
   # Load balancer
   resource "aws_lb" "Proj_alb" {
-  name               = "proj-lb"
+  name               = "proj_lb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = ["${aws_security_group.project_security_group.id}"]
