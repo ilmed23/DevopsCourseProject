@@ -205,7 +205,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
 
   # Target group for nginx
   resource "aws_lb_target_group" "Proj_HTTP_TargetGroup" {
-  name        = "TG_final_project"
+  name        = "TG-FinalProj"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = "${aws_vpc.project_vpc.id}"
