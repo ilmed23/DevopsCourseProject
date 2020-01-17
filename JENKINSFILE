@@ -125,5 +125,16 @@ pipeline
                    '''
             }
         }
+        
+        stage ('Deploy SwarmProm')
+        {
+            steps
+            {
+                sh '''
+                   source ./venvansible/bin/activate
+                   ansible-playbook ./ansible/swarmprom_playbook.yaml -i ${PWD}/ec2.py --private-key $SSH_KEY_FILE
+                   '''
+            }
+        }
     }
 }
