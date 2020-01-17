@@ -282,3 +282,8 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
     }
   ]
 }
+
+#------------------------------------------- OUTPUTS -------------------------------------------------------
+output "lb_address" {
+ value = "${aws_lb.Proj_alb.public_dns}"
+}

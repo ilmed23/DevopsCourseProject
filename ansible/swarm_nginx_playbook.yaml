@@ -15,8 +15,8 @@
          name: nginx
          image: nginx:latest
          publish:
-           - published_port: 80
-             target_port: 8080
+           - published_port: 8080
+             target_port: 80
              protocol: tcp
        when: service_output.rc == 1
        run_once: true
