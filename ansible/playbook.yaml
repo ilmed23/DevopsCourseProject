@@ -1,0 +1,11 @@
+---
+ - name: Install packages and update
+   hosts: tag_PartOf_FinalProject
+   become: true
+
+   tasks:
+     - name: Install packages
+       yum: name=vim,htop,sysstat state=latest
+     - name: upgrade all packages
+       yum: name=* state=latest
+     
