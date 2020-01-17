@@ -5,8 +5,12 @@
    become: true
 
    tasks:
-     - name: Install packages
-       yum: name=vim,htop,sysstat state=latest
+     - name: Install vim
+       yum: name=vim state=latest
+     - name: Install htop
+       yum: name=htop state=latest
+     - name: Install sysstat
+       yum: name=sysstat state=latest 
      - name: upgrade all packages
        yum: name=* state=latest
      
