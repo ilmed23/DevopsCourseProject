@@ -13,4 +13,8 @@
        yum: name=sysstat state=latest 
      - name: upgrade all packages
        yum: name=* state=latest
+     - name: Install pip
+       yum: name=python-pip state=present
+     - name: Install docker pip package
+       pip: name=docker
      

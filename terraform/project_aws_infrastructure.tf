@@ -174,7 +174,7 @@ resource "aws_route53_zone" "project_hosted_zone" {
     vpc_id = "${aws_vpc.project_vpc.id}"
   }
 }
-#--------------------------- AUTOSCALING GROUPS -------------------------------------------------------
+#--------------------------- AUTOSCALING GROUPS & Load balancer -------------------------------------------------------
 resource "aws_key_pair" "projectKeyPair" {
   key_name   = "FinprojectKeyPair"
   public_key = file("${var.ssh_public_key_path}")
@@ -202,6 +202,15 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
   security_groups = ["${aws_security_group.project_security_group.id}"]
   user_data= file("${path.module}/../user_data/UD_SwarmWorker.sh")
 }
+
+  # Target group for nginx
+  resource "aws_lb_target_group" "Proj_HTTP_TargetGroup" {
+  name        = "tf-example-lb-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = "${aws_vpc.project_vpc.id}"
+}
+
   # AutoScaling groups - instances are created with name set to INITIALIZING, once swarm is initialized the user data will change it
   resource "aws_autoscaling_group" "Proj_ASG_SwarmManagers" {
   name                 = "Proj_ASG_SwarmManagers"
@@ -209,7 +218,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
   min_size             = 2
   launch_configuration = "${aws_launch_configuration.Proj_LC_SwarmManager.name}"
   vpc_zone_identifier  = ["${aws_subnet.subnet1.id}", "${aws_subnet.subnet2.id}", "${aws_subnet.subnet3.id}"]
-
+  target_group_arns    = ["${aws_lb_target_group.Proj_HTTP_TargetGroup.arn}"]
   tags = [
     {
       key                 = "DomainName"
@@ -235,7 +244,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
   min_size             = 2
   launch_configuration = "${aws_launch_configuration.Proj_LC_SwarmWorker.name}"
   vpc_zone_identifier  = ["${aws_subnet.subnet1.id}", "${aws_subnet.subnet2.id}", "${aws_subnet.subnet3.id}"]
-
+  target_group_arns    = ["${aws_lb_target_group.Proj_HTTP_TargetGroup.arn}"]
   tags = [
     {
       key                 = "DomainName"

@@ -1,0 +1,23 @@
+---
+ - name: Create nginx swarm service
+   hosts: tag_InstanceRole_SwarmManager
+   remote_user: ec2-user
+   become: true
+
+   tasks:
+     - name: Check if service already exists
+       command: docker service inspect nginx
+       register: service_output
+       ignore_errors: yes
+     - debug: msg="{{ service_output.rc }}"
+     - name: Create nginx service
+       docker_swarm_service:
+         name: nginx
+         image: nginx:latest
+         publish:
+           - published_port: 80
+             target_port: 8080
+             protocol: tcp
+       when: service_output.rc == 1
+       run_once: true
+     
