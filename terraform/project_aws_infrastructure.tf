@@ -220,7 +220,7 @@ resource "aws_launch_configuration" "Proj_LC_SwarmWorker" {
   }
 
   resource "aws_lb_listener" "Proj_listener" {  
-  load_balancer_arn = "${aws_alb.Proj_alb.arn}"  
+  load_balancer_arn = "${aws_lb.Proj_alb.arn}"  
   port              = "8080"  
   protocol          = "HTTP"
   
