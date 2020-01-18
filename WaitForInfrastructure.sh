@@ -1,6 +1,5 @@
 #!/bin/bash
-AvailabilityZone=$(ec2-metadata --availability-zone | cut -d ' ' -f2)
-region=${AvailabilityZone%?}
+region=${1}
 
 function GetProjectNodes()
 {
